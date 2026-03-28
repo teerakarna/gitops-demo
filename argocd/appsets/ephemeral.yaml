@@ -1,0 +1,47 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: service-demo-prs
+  namespace: argocd
+spec:
+  generators:
+    - pullRequest:
+        github:
+          owner: teerakarna
+          repo: service-demo
+          # Create a fine-grained GitHub PAT with read access to service-demo
+          # and store it as a Kubernetes secret named 'github-token' in argocd namespace:
+          #   kubectl create secret generic github-token -n argocd --from-literal=token=<PAT>
+          tokenRef:
+            secretName: github-token
+            key: token
+        requeueAfterSeconds: 60
+  template:
+    metadata:
+      # Application name is unique per PR number
+      name: "service-demo-pr-{{number}}"
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/teerakarna/service-demo
+        # Deploy the chart at the PR branch HEAD — not main.
+        # This means the PR's version of the chart is what gets deployed.
+        targetRevision: "{{head_sha}}"
+        path: chart/service-demo
+        helm:
+          parameters:
+            - name: image.tag
+              value: "pr-{{number}}-{{head_sha}}"
+            - name: env.ENV_NAME
+              value: "pr-{{number}}"
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: "pr-{{number}}"
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+      # When the PR is closed, the Application and its namespace are pruned.
+      # preserveResourcesOnDeletion: false is the default.

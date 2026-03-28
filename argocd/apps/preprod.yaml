@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: service-demo-preprod
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/teerakarna/service-demo
+      targetRevision: main
+      path: chart/service-demo
+      helm:
+        valueFiles:
+          - $gitops/values/preprod/service-demo.yaml
+    - repoURL: https://github.com/teerakarna/gitops-demo
+      targetRevision: HEAD
+      ref: gitops
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: preprod
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

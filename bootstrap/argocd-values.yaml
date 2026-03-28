@@ -1,0 +1,20 @@
+# ArgoCD Helm values for local kind cluster.
+# Insecure mode (no TLS) — acceptable for a local demo, never for production.
+server:
+  extraArgs:
+    - --insecure
+  service:
+    type: NodePort
+    nodePortHttp: 30080
+
+configs:
+  params:
+    server.insecure: "true"
+  cm:
+    url: http://localhost:30080
+    # Allow ArgoCD to manage resources in all namespaces
+    application.resourceTrackingMethod: annotation
+
+# Disable dex (SSO) — not needed for a local demo
+dex:
+  enabled: false

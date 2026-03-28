@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: service-demo-prod
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/teerakarna/service-demo
+      targetRevision: main
+      path: chart/service-demo
+      helm:
+        valueFiles:
+          - $gitops/values/prod/service-demo.yaml
+    - repoURL: https://github.com/teerakarna/gitops-demo
+      targetRevision: HEAD
+      ref: gitops
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prod
+  syncPolicy:
+    # Production is NOT auto-synced. ArgoCD shows the diff; a human (or the release
+    # workflow) triggers the sync. This is intentional — auto-sync in prod means
+    # any commit to gitops-demo immediately affects live traffic.
+    syncOptions:
+      - CreateNamespace=true

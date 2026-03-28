@@ -1,0 +1,16 @@
+# Updated by release.yml on manual release trigger only.
+image:
+  tag: latest   # replaced with v{X.Y.Z} by release pipeline
+
+env:
+  ENV_NAME: prod
+
+replicaCount: 3
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 64Mi
