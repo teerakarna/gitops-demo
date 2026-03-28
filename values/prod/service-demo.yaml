@@ -5,6 +5,8 @@ image:
 env:
   ENV_NAME: prod
 
+servicesNamespace: prod
+
 replicaCount: 3
 
 resources:

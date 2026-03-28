@@ -22,9 +22,8 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: dev
+  # Manual sync: dev tracks releases (same v{X.Y.Z} as prod), promoted atomically
+  # at release time. Auto-sync would race with the release commit.
   syncPolicy:
-    automated:
-      prune: true
-      selfHeal: true
     syncOptions:
       - CreateNamespace=true

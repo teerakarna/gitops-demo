@@ -1,8 +1,12 @@
-# Updated automatically by cd.yml on every merge to main.
+# Updated by release.yml alongside prod — dev always tracks the same v{X.Y.Z} release.
+# Ephemeral PR environments set servicesNamespace=dev via the ApplicationSet,
+# so they resolve shared services here via in-cluster DNS.
 image:
-  tag: latest   # replaced with main-{sha} by CD pipeline
+  tag: latest   # replaced with v{X.Y.Z} by release pipeline
 
 env:
   ENV_NAME: dev
+
+servicesNamespace: dev
 
 replicaCount: 1

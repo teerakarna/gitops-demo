@@ -5,6 +5,8 @@ image:
 env:
   ENV_NAME: preprod
 
+servicesNamespace: preprod
+
 replicaCount: 2
 
 resources:
