@@ -1,0 +1,28 @@
+name: terraform checks
+
+on:
+  pull_request:
+    paths:
+      - "terraform/**"
+      - ".github/workflows/terraform-checks.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3
+        with:
+          terraform_version: "1.14.7"
+      - name: fmt
+        run: terraform fmt -check -recursive
+      - name: init
+        run: terraform init -backend=false -input=false
+      - name: validate
+        run: terraform validate
