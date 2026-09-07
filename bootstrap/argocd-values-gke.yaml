@@ -1,0 +1,22 @@
+# ArgoCD Helm values for the GKE cloud path.
+#
+# Uses a LoadBalancer service so ArgoCD gets a real external IP on GCP, instead of
+# the NodePort trick used for the local kind cluster.
+#
+# Still insecure (no TLS) to keep the demo free of a domain and a certificate.
+# Do not use this configuration for anything beyond the demo.
+server:
+  extraArgs:
+    - --insecure
+  service:
+    type: LoadBalancer
+
+configs:
+  params:
+    server.insecure: "true"
+  cm:
+    application.resourceTrackingMethod: annotation
+
+# Disable dex (SSO) — not needed for a demo
+dex:
+  enabled: false

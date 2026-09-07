@@ -6,6 +6,14 @@ terraform {
       source  = "hashicorp/google"
       version = "~> 6.0"
     }
+    helm = {
+      source  = "hashicorp/helm"
+      version = "~> 2.14"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.31"
+    }
   }
 }
 
@@ -25,4 +33,47 @@ resource "google_container_cluster" "gitops_demo" {
 
   # Demo only: let "terraform destroy" remove the cluster without a manual step.
   deletion_protection = false
+}
+
+# Short-lived access token for the kubernetes/helm providers, refreshed on every run
+# from the credentials `gcloud auth application-default login` set up.
+data "google_client_config" "default" {}
+
+provider "kubernetes" {
+  host                   = "https://${google_container_cluster.gitops_demo.endpoint}"
+  token                  = data.google_client_config.default.access_token
+  cluster_ca_certificate = base64decode(google_container_cluster.gitops_demo.master_auth[0].cluster_ca_certificate)
+}
+
+provider "helm" {
+  kubernetes {
+    host                   = "https://${google_container_cluster.gitops_demo.endpoint}"
+    token                  = data.google_client_config.default.access_token
+    cluster_ca_certificate = base64decode(google_container_cluster.gitops_demo.master_auth[0].cluster_ca_certificate)
+  }
+}
+
+resource "kubernetes_namespace" "namespaces" {
+  for_each = toset(["dev", "preprod", "prod"])
+
+  metadata {
+    name = each.key
+  }
+
+  depends_on = [google_container_cluster.gitops_demo]
+}
+
+resource "helm_release" "argocd" {
+  name             = "argocd"
+  repository       = "https://argoproj.github.io/argo-helm"
+  chart            = "argo-cd"
+  version          = var.argocd_chart_version
+  namespace        = "argocd"
+  create_namespace = true
+  wait             = true
+  timeout          = 300
+
+  values = [file("${path.module}/../../bootstrap/argocd-values-gke.yaml")]
+
+  depends_on = [google_container_cluster.gitops_demo]
 }
