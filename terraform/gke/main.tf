@@ -33,6 +33,18 @@ resource "google_container_cluster" "gitops_demo" {
 
   # Demo only: let "terraform destroy" remove the cluster without a manual step.
   deletion_protection = false
+
+  # Restrict the control plane API to known CIDR blocks. Without this it is
+  # reachable from any IP on the internet. See variables.tf for how to set it.
+  master_authorized_networks_config {
+    dynamic "cidr_blocks" {
+      for_each = var.authorized_cidr_blocks
+      content {
+        cidr_block   = cidr_blocks.value
+        display_name = "authorized-${cidr_blocks.key}"
+      }
+    }
+  }
 }
 
 # Short-lived access token for the kubernetes/helm providers, refreshed on every run
