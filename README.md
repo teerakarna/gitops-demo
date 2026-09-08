@@ -4,6 +4,38 @@ GitOps source of truth for the [From Commit to Cluster](https://teerakarna.githu
 
 This repo is the half of the system that ArgoCD watches. It contains the infrastructure bootstrap (Terraform: kind cluster + ArgoCD), ArgoCD Application and ApplicationSet definitions, and per-environment Helm values for [`service-demo`](https://github.com/teerakarna/service-demo). The CI/CD pipelines in `service-demo` commit to this repo; ArgoCD reads from it and reconciles the cluster. Neither pipeline touches the cluster directly.
 
+```mermaid
+flowchart LR
+    subgraph sd["service-demo repo"]
+        CI["CI / CD workflows"]
+    end
+
+    subgraph gd["gitops-demo repo (this one)"]
+        VALUES["values/*.yaml"]
+        APPS["argocd/apps + appsets"]
+    end
+
+    subgraph cluster["cluster"]
+        ARGOCD["ArgoCD"]
+        DEV["dev"]
+        PREPROD["preprod"]
+        PROD["prod"]
+        PR["pr-N (ephemeral)"]
+    end
+
+    CI -- "commits image tag" --> VALUES
+    ARGOCD -- watches --> VALUES
+    ARGOCD -- watches --> APPS
+    ARGOCD -- syncs --> DEV
+    ARGOCD -- syncs --> PREPROD
+    ARGOCD -- syncs --> PROD
+    ARGOCD -- syncs --> PR
+```
+
+CI/CD only ever writes to `values/` in this repo. It never talks to the cluster.
+ArgoCD is the only thing that talks to the cluster, and it only acts on what it
+reads from this repo. That separation is the point of GitOps.
+
 ---
 
 ## Repository structure
@@ -35,6 +67,14 @@ values/
 ---
 
 ## Quick start
+
+### Prerequisites
+
+- [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.9
+- [kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/#kubectl)
+- [Helm](https://helm.sh/docs/intro/install/) (used by Terraform, not called directly)
+- [ArgoCD CLI](https://argo-cd.readthedocs.io/en/stable/cli_installation/)
 
 ### 1. Bootstrap the cluster and install ArgoCD
 
@@ -95,6 +135,16 @@ CI uses this token for `argocd app wait` in the preprod test job.
 The steps above use a local kind cluster. To run the same setup on a real GKE
 cluster instead, see [`terraform/gke/README.md`](terraform/gke/README.md). It
 costs money while running: read the cost note there first.
+
+### Teardown
+
+```bash
+cd terraform
+terraform destroy
+```
+
+This removes the kind cluster and everything on it. There is nothing else to
+clean up locally.
 
 ---
 
