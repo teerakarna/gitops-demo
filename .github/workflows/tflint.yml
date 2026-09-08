@@ -2,10 +2,6 @@ name: tflint
 
 on:
   pull_request:
-    paths:
-      - "terraform/**"
-      - ".tflint.hcl"
-      - ".github/workflows/tflint.yml"
 
 permissions:
   contents: read

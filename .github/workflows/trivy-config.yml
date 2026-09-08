@@ -2,9 +2,6 @@ name: trivy config scan
 
 on:
   pull_request:
-    paths:
-      - "terraform/**"
-      - ".github/workflows/trivy-config.yml"
 
 permissions:
   contents: read
