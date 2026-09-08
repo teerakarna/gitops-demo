@@ -90,6 +90,12 @@ argocd account generate-token --account admin
 
 CI uses this token for `argocd app wait` in the preprod test job.
 
+### Cloud path (optional)
+
+The steps above use a local kind cluster. To run the same setup on a real GKE
+cluster instead, see [`terraform/gke/README.md`](terraform/gke/README.md). It
+costs money while running: read the cost note there first.
+
 ---
 
 ## Self-hosted runner
