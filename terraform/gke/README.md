@@ -19,9 +19,16 @@ This creates real cloud resources and costs money while it runs.
 
 ## Use
 
+The GKE control plane API only accepts connections from CIDR blocks you list
+explicitly, so find your public IP first:
+
+```
+curl -s ifconfig.me
+```
+
 ```
 terraform init
-terraform apply -var project_id=YOUR_PROJECT
+terraform apply -var project_id=YOUR_PROJECT -var 'authorized_cidr_blocks=["YOUR_IP/32"]'
 gcloud container clusters get-credentials gitops-demo --region asia-southeast1 --project YOUR_PROJECT
 ```
 

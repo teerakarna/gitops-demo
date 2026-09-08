@@ -20,3 +20,14 @@ variable "argocd_chart_version" {
   type        = string
   default     = "7.8.0"
 }
+
+variable "authorized_cidr_blocks" {
+  description = <<-EOT
+    CIDR blocks allowed to reach the GKE control plane API, e.g. your own IP as
+    a /32. No default: you must set this, so the control plane is never open to
+    the whole internet by accident.
+
+    Find your public IP with: curl -s ifconfig.me
+  EOT
+  type        = list(string)
+}
