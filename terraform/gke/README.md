@@ -35,8 +35,30 @@ kubectl get svc argocd-server -n argocd
 It stays insecure (no TLS), the same as the local kind path. Do not expose this
 beyond the demo.
 
-The app wiring (dev/preprod/prod Applications, the ephemeral-PR ApplicationSet)
-comes in the next step.
+## Wire up the Applications
+
+The dev/preprod/prod Applications and the ephemeral-PR ApplicationSet in
+`../../argocd/` are the same files used on the local kind path. They target
+`https://kubernetes.default.svc` (the API server ArgoCD itself runs on), so
+nothing about them is kind- or GKE-specific.
+
+```bash
+kubectl -n argocd get secret argocd-initial-admin-secret \
+  -o jsonpath="{.data.password}" | base64 -d
+
+argocd login <EXTERNAL-IP> --username admin --insecure
+# UI: https://<EXTERNAL-IP>
+
+kubectl apply -f ../../argocd/apps/
+
+kubectl create secret generic github-token \
+  -n argocd \
+  --from-literal=token=<your-github-pat>
+kubectl apply -f ../../argocd/appsets/ephemeral.yaml
+```
+
+The only difference from the local path (see the top-level README) is logging in
+with the LoadBalancer's external IP instead of `localhost:30080`.
 
 ## Teardown
 
