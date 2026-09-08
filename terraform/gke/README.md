@@ -25,7 +25,18 @@ terraform apply -var project_id=YOUR_PROJECT
 gcloud container clusters get-credentials gitops-demo --region asia-southeast1 --project YOUR_PROJECT
 ```
 
-ArgoCD install and the app wiring come in the next step.
+This also installs ArgoCD, with a LoadBalancer service so it gets a real external IP
+(see `../../bootstrap/argocd-values-gke.yaml`). Find the IP with:
+
+```
+kubectl get svc argocd-server -n argocd
+```
+
+It stays insecure (no TLS), the same as the local kind path. Do not expose this
+beyond the demo.
+
+The app wiring (dev/preprod/prod Applications, the ephemeral-PR ApplicationSet)
+comes in the next step.
 
 ## Teardown
 
